@@ -204,6 +204,7 @@ export function TrainingWorkspace({
   const [helpMessage, setHelpMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [hintPauseMs, setHintPauseMs] = useState(DEFAULT_HINT_PAUSE_MS);
+  const [editorGeneration, setEditorGeneration] = useState(0);
   const editorRef = useRef<YamlEditorHandle>(null);
   const findingGhostTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -288,6 +289,29 @@ export function TrainingWorkspace({
     },
     [submitted],
   );
+
+  const restoreEditorYaml = useCallback((nextYaml: string) => {
+    setYaml(nextYaml);
+    setDebouncedYaml(nextYaml);
+    setSubmitted(false);
+    setSubmitHighlights([]);
+    setActiveHighlightLine(null);
+    setActiveFindingPath(null);
+    setGhostHint(null);
+    setHelpMessage(null);
+    setSuccessMessage(null);
+    setShowSolution(false);
+    setEditorGeneration((generation) => generation + 1);
+  }, []);
+
+  const handleRestoreBroken = useCallback(() => {
+    restoreEditorYaml(brokenYaml);
+    setHelpMessage("Original broken manifest restored.");
+  }, [brokenYaml, restoreEditorYaml]);
+
+  const handleScaffold = useCallback(() => {
+    restoreEditorYaml(starterYaml);
+  }, [starterYaml, restoreEditorYaml]);
 
   const handleHelp = useCallback(() => {
     if (submitted) return;
@@ -481,7 +505,12 @@ export function TrainingWorkspace({
           </button>
           <button
             type="button"
-            onClick={() => setYaml(isDebug ? brokenYaml : starterYaml)}
+            onClick={isDebug ? handleRestoreBroken : handleScaffold}
+            title={
+              isDebug
+                ? "Restore the original broken manifest and clear submit feedback"
+                : "Insert a starter template for this resource kind"
+            }
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-sky-600 hover:text-sky-300"
           >
             {isDebug ? (
@@ -498,12 +527,7 @@ export function TrainingWorkspace({
           </button>
           <button
             type="button"
-            onClick={() => {
-              setYaml(isDebug ? brokenYaml : "");
-              setSubmitted(false);
-              setSubmitHighlights([]);
-              setActiveHighlightLine(null);
-            }}
+            onClick={() => restoreEditorYaml("")}
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-slate-500"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -539,6 +563,7 @@ export function TrainingWorkspace({
           <div className={`min-h-0 flex-1 ${showSolution ? "flex flex-col gap-3" : ""}`}>
             <div className={showSolution ? "min-h-0 flex-1" : "h-full"}>
               <YamlEditor
+                key={`${exercise.id}-${editorGeneration}`}
                 ref={editorRef}
                 value={yaml}
                 onChange={handleYamlChange}
