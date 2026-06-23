@@ -10,14 +10,12 @@ interface YamlReadOnlyProps {
   minHeight?: string;
 }
 
-export function YamlReadOnly({ value, minHeight = "280px" }: YamlReadOnlyProps) {
+export function YamlReadOnly({ value, minHeight = "200px" }: YamlReadOnlyProps) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-amber-500/20 bg-[#0d1117] shadow-inner">
-      <div className="border-b border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-xs font-medium text-amber-400/90">
-        Broken manifest — read only
-      </div>
+    <div className="h-full min-h-0 overflow-hidden">
       <CodeMirror
         value={value}
+        height="100%"
         minHeight={minHeight}
         theme={oneDark}
         extensions={[yaml(), EditorView.lineWrapping, EditorView.editable.of(false)]}
@@ -25,10 +23,11 @@ export function YamlReadOnly({ value, minHeight = "280px" }: YamlReadOnlyProps) 
         basicSetup={{
           lineNumbers: true,
           foldGutter: true,
-          highlightActiveLine: false,
           tabSize: 2,
+          highlightActiveLine: false,
+          highlightActiveLineGutter: false,
         }}
-        className="text-sm [&_.cm-editor]:max-w-full [&_.cm-scroller]:font-mono [&_.cm-cursor]:hidden"
+        className="h-full text-sm [&_.cm-editor]:h-full [&_.cm-scroller]:font-mono"
       />
     </div>
   );

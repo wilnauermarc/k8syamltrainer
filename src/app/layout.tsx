@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { Header } from "@/components/Header";
 import { SupportFooter } from "@/components/SupportFooter";
+import { WelcomeProvider } from "@/components/WelcomeProvider";
 import { getSupportLinks } from "@/lib/config/support";
 import "./globals.css";
 
@@ -35,10 +36,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex h-full min-h-screen flex-col bg-slate-950 text-slate-200">
-        <Header links={supportLinks} />
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-        <SupportFooter links={supportLinks} />
+      <body className="flex h-full flex-col overflow-hidden bg-slate-950 text-slate-200">
+        <WelcomeProvider links={supportLinks}>
+          <Header links={supportLinks} />
+          <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+          <SupportFooter links={supportLinks} />
+        </WelcomeProvider>
       </body>
     </html>
   );

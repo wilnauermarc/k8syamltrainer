@@ -1,4 +1,4 @@
-import type { ScoreReport } from "@/lib/domain/types";
+import type { ReviewFinding, ScoreReport } from "@/lib/domain/types";
 import { AlertCircle, CheckCircle2, Circle, MapPin } from "lucide-react";
 
 interface FeedbackPanelProps {
@@ -12,6 +12,7 @@ interface FeedbackPanelProps {
   highlightByPath?: Record<string, number>;
   activeFindingPath?: string | null;
   onSelectFinding?: (fieldPath: string) => void;
+  debugFindings?: ReviewFinding[];
 }
 
 export function FeedbackPanel({
@@ -25,6 +26,7 @@ export function FeedbackPanel({
   highlightByPath = {},
   activeFindingPath = null,
   onSelectFinding,
+  debugFindings,
 }: FeedbackPanelProps) {
   if (isEmpty && !parseError) {
     return (
@@ -97,6 +99,27 @@ export function FeedbackPanel({
       {isComplete && live && (
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">
           All requirements met. Submit to save your progress.
+        </div>
+      )}
+
+      {submitted && debugFindings && debugFindings.length > 0 && (
+        <div className="mb-4 rounded-lg border border-rose-500/25 bg-rose-500/5 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+            Issues in the broken manifest
+          </p>
+          <ul className="mt-2 space-y-2">
+            {debugFindings.map((finding) => (
+              <li key={finding.id} className="text-sm text-slate-300">
+                <p className="font-medium text-rose-200/90">{finding.label}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                  {finding.explanation}
+                </p>
+                {finding.recommendation && (
+                  <p className="mt-1 text-xs text-sky-400/80">{finding.recommendation}</p>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

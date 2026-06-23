@@ -19,15 +19,26 @@ function LinkedInIcon({ className }: { className?: string }) {
 interface SupportLinkButtonsProps {
   links: SupportLinkConfig;
   size?: "sm" | "md";
+  align?: "start" | "center" | "end";
 }
 
-export function SupportLinkButtons({ links, size = "sm" }: SupportLinkButtonsProps) {
+export function SupportLinkButtons({
+  links,
+  size = "sm",
+  align = "end",
+}: SupportLinkButtonsProps) {
   if (!hasSupportLinks(links)) return null;
 
   const isMd = size === "md";
+  const alignClass =
+    align === "start"
+      ? "justify-start"
+      : align === "center"
+        ? "justify-center"
+        : "justify-end";
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+    <div className={`flex flex-wrap items-center gap-2 ${alignClass}`}>
       {links.website && (
         <a
           href={links.website}

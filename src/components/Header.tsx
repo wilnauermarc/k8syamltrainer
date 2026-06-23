@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Container, GraduationCap, LineChart, Search } from "lucide-react";
+import { Bug, Container, GraduationCap, LineChart, Sparkles } from "lucide-react";
 
 import { SupportLinkButtons } from "@/components/SupportLinkButtons";
+import { useWelcome } from "@/components/WelcomeProvider";
 import type { SupportLinkConfig } from "@/lib/config/support";
 import { hasSupportLinks } from "@/lib/config/support";
 
 const navLinks = [
   { href: "/train", label: "Train", icon: GraduationCap },
-  { href: "/review", label: "Review", icon: Search },
+  { href: "/debug", label: "Debug", icon: Bug },
   { href: "/progress", label: "Progress", icon: LineChart },
 ];
 
@@ -20,6 +21,7 @@ interface HeaderProps {
 
 export function Header({ links }: HeaderProps) {
   const pathname = usePathname();
+  const { openWelcome } = useWelcome();
   const showSupport = hasSupportLinks(links);
 
   return (
@@ -49,6 +51,15 @@ export function Header({ links }: HeaderProps) {
             );
           })}
         </nav>
+        <button
+          type="button"
+          onClick={openWelcome}
+          title="Why this trainer exists"
+          className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-800 hover:text-sky-300"
+          aria-label="Open welcome message"
+        >
+          <Sparkles className="h-4 w-4" />
+        </button>
         {showSupport && (
           <div className="hidden border-l border-slate-800 pl-2 lg:block">
             <SupportLinkButtons links={links} size="sm" />

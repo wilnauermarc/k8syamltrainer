@@ -2,11 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, HelpCircle, RotateCcw, Sparkles } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Wrench } from "lucide-react";
 
 import { HintPauseControl } from "@/components/HintPauseControl";
 import { ExercisePanel } from "@/components/ExercisePanel";
 import { FeedbackPanel } from "@/components/FeedbackPanel";
+import { YamlReadOnly } from "@/components/YamlReadOnly";
 import type { YamlEditorHandle } from "@/components/YamlEditor";
 import { evaluateYaml, getFailedFieldPaths, isExerciseComplete } from "@/lib/evaluate";
 import { celebrateSuccess } from "@/lib/celebrate";
@@ -177,9 +178,14 @@ const SUCCESS_ADVANCE_MS = 1800;
 interface TrainingWorkspaceProps {
   exercises: Exercise[];
   initialExerciseId?: string;
+  variant?: "train" | "debug";
 }
 
-export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWorkspaceProps) {
+export function TrainingWorkspace({
+  exercises,
+  initialExerciseId,
+  variant = "train",
+}: TrainingWorkspaceProps) {
   const initialIndex = Math.max(
     0,
     exercises.findIndex((e) => e.id === initialExerciseId),
@@ -189,6 +195,7 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
   const [yaml, setYaml] = useState("");
   const [debouncedYaml, setDebouncedYaml] = useState("");
   const [showHints, setShowHints] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitHighlights, setSubmitHighlights] = useState<YamlHighlight[]>([]);
   const [activeHighlightLine, setActiveHighlightLine] = useState<number | null>(null);
@@ -206,6 +213,8 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
   }, []);
 
   const exercise = exercises[index];
+  const isDebug = variant === "debug";
+  const brokenYaml = exercise.brokenManifest ?? "";
 
   const starterYaml = useMemo(() => {
     const kind = exercise.expectedKinds[0];
@@ -213,10 +222,11 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
   }, [exercise]);
 
   useEffect(() => {
-    setYaml("");
-    setDebouncedYaml("");
+    setYaml(isDebug ? brokenYaml : "");
+    setDebouncedYaml(isDebug ? brokenYaml : "");
     setSubmitted(false);
     setShowHints(false);
+    setShowSolution(false);
     setSubmitHighlights([]);
     setActiveHighlightLine(null);
     setActiveFindingPath(null);
@@ -225,7 +235,7 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
     setSuccessMessage(null);
     if (findingGhostTimerRef.current) clearTimeout(findingGhostTimerRef.current);
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
-  }, [exercise.id]);
+  }, [exercise.id, isDebug, brokenYaml]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedYaml(yaml), 350);
@@ -319,6 +329,16 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [handleHelp]);
+
+  const handleApplySolution = useCallback(() => {
+    if (!exercise.solutionYaml) return;
+    setYaml(exercise.solutionYaml);
+    setSubmitted(false);
+    setSubmitHighlights([]);
+    setActiveHighlightLine(null);
+    setGhostHint(null);
+    setHelpMessage("Solution copied to editor.");
+  }, [exercise.solutionYaml]);
 
   const handleSubmit = useCallback(() => {
     const result = evaluateYaml(yaml, exercise);
@@ -421,7 +441,7 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
             <ChevronLeft className="h-5 w-5" />
           </button>
           <span className="text-sm text-slate-400">
-            Exercise {index + 1} of {exercises.length}
+            {isDebug ? "Debug" : "Exercise"} {index + 1} of {exercises.length}
           </span>
           <button
             type="button"
@@ -447,16 +467,39 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
           </button>
           <button
             type="button"
-            onClick={() => setYaml(starterYaml)}
+            onClick={() => setShowSolution((open) => !open)}
+            disabled={!exercise.solutionYaml}
+            title="Show or hide the reference solution"
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition disabled:opacity-40 ${
+              showSolution
+                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
+                : "border-slate-700 text-slate-300 hover:border-emerald-600/50 hover:text-emerald-300"
+            }`}
+          >
+            {showSolution ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            {showSolution ? "Hide solution" : "Show solution"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setYaml(isDebug ? brokenYaml : starterYaml)}
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-sky-600 hover:text-sky-300"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            Scaffold
+            {isDebug ? (
+              <>
+                <Wrench className="h-3.5 w-3.5" />
+                Reset broken
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                Scaffold
+              </>
+            )}
           </button>
           <button
             type="button"
             onClick={() => {
-              setYaml("");
+              setYaml(isDebug ? brokenYaml : "");
               setSubmitted(false);
               setSubmitHighlights([]);
               setActiveHighlightLine(null);
@@ -485,6 +528,7 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
             exercise={exercise}
             showHints={showHints}
             onToggleHints={() => setShowHints(!showHints)}
+            variant={variant}
           />
         </div>
 
@@ -492,19 +536,42 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
           <div className="mb-2 flex items-center justify-between lg:hidden">
             <h2 className="text-sm font-medium text-slate-200">{exercise.title}</h2>
           </div>
-          <div className="min-h-0 flex-1">
-            <YamlEditor
-              ref={editorRef}
-              value={yaml}
-              onChange={handleYamlChange}
-              highlights={submitted ? submitHighlights : []}
-              activeLine={activeHighlightLine}
-              ghostHint={ghostHint}
-              placeholder="# Type your Kubernetes manifest here…"
-            />
+          <div className={`min-h-0 flex-1 ${showSolution ? "flex flex-col gap-3" : ""}`}>
+            <div className={showSolution ? "min-h-0 flex-1" : "h-full"}>
+              <YamlEditor
+                ref={editorRef}
+                value={yaml}
+                onChange={handleYamlChange}
+                highlights={submitted ? submitHighlights : []}
+                activeLine={activeHighlightLine}
+                ghostHint={ghostHint}
+                placeholder="# Type your Kubernetes manifest here…"
+              />
+            </div>
+            {showSolution && exercise.solutionYaml && (
+              <section className="flex min-h-0 max-h-[42%] flex-col overflow-hidden rounded-xl border border-emerald-500/25 bg-[#0d1117] shadow-inner">
+                <div className="flex items-center justify-between gap-2 border-b border-emerald-500/20 px-3 py-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    Reference solution
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleApplySolution}
+                    className="rounded-md border border-emerald-500/30 px-2.5 py-1 text-xs font-medium text-emerald-200 transition hover:bg-emerald-500/10"
+                  >
+                    Copy to editor
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1">
+                  <YamlReadOnly value={exercise.solutionYaml} minHeight="180px" />
+                </div>
+              </section>
+            )}
           </div>
           <p className="mt-2 text-center text-xs text-slate-600">
-            Live validation · Help (F1) fixes indent &amp; values · Adjustable hint pause in toolbar
+            {isDebug
+              ? "Fix the broken manifest · Help (F1) for targeted hints · Submit when ready"
+              : "Live validation · Help (F1) fixes indent & values · Adjustable hint pause in toolbar"}
           </p>
           {helpMessage && (
             <p className="mt-1 text-center text-xs text-violet-300/90" role="status">
@@ -530,6 +597,7 @@ export function TrainingWorkspace({ exercises, initialExerciseId }: TrainingWork
             highlightByPath={highlightByPath}
             activeFindingPath={activeFindingPath}
             onSelectFinding={handleSelectFinding}
+            debugFindings={isDebug ? exercise.debugFindings : undefined}
           />
         </div>
       </div>

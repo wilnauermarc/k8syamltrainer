@@ -32,10 +32,10 @@ export default function HomePage() {
       </Link>
 
       <Link
-        href="/review"
-        className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-6 py-3 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/20"
+        href="/debug"
+        className="mt-10 inline-flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-6 py-3 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/20"
       >
-        Review broken manifests
+        Debug &amp; fix manifests
         <ArrowRight className="h-4 w-4" />
       </Link>
 

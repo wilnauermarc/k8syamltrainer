@@ -1,5 +1,5 @@
 export type Difficulty = "beginner" | "intermediate" | "advanced";
-export type TrainingMode = "train" | "review" | "interview" | "wizard";
+export type TrainingMode = "train" | "debug" | "interview" | "wizard";
 export type K8sKind =
   | "Pod"
   | "Deployment"
@@ -70,12 +70,12 @@ export interface Exercise {
   hints: string[];
   learningObjectives: string[];
   tags: string[];
-  /** Canonical solution for train mode; empty for review-only exercises. */
+  /** Canonical solution for train/debug modes. */
   solutionYaml: string;
-  /** Broken manifest shown in review mode. */
+  /** Broken manifest shown in debug mode. */
   brokenManifest?: string;
-  /** Issues the user should identify in review mode. */
-  reviewFindings?: ReviewFinding[];
+  /** Known issues in the broken manifest (shown after submit in debug mode). */
+  debugFindings?: ReviewFinding[];
 }
 
 export interface K8sObject {

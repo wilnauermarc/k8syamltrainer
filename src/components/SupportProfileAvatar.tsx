@@ -6,13 +6,14 @@ import { useState } from "react";
 interface SupportProfileAvatarProps {
   src: string;
   alt?: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   href?: string;
 }
 
 const sizes = {
   sm: { box: "h-16 w-16", pixels: 64 },
   md: { box: "h-28 w-28", pixels: 112 },
+  lg: { box: "h-32 w-32", pixels: 128 },
 } as const;
 
 export function SupportProfileAvatar({

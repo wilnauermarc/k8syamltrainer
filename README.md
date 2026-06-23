@@ -32,7 +32,7 @@ Open [http://localhost:3000](http://localhost:3000)
 |-------|-------------|
 | `/` | Landing page |
 | `/train` | Training workspace |
-| `/review` | Review broken manifests |
+| `/debug` | Fix broken manifests |
 | `/progress` | Score history & streaks |
 
 ## Support links

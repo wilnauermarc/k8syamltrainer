@@ -1,21 +1,49 @@
 import type { Exercise } from "@/lib/domain/types";
-import { BookOpen, Lightbulb, Target } from "lucide-react";
+import { BookOpen, Bug, Lightbulb, Target } from "lucide-react";
 
 interface ExercisePanelProps {
   exercise: Exercise;
   showHints: boolean;
   onToggleHints: () => void;
+  variant?: "train" | "debug";
 }
 
-export function ExercisePanel({ exercise, showHints, onToggleHints }: ExercisePanelProps) {
+export function ExercisePanel({
+  exercise,
+  showHints,
+  onToggleHints,
+  variant = "train",
+}: ExercisePanelProps) {
+  const isDebug = variant === "debug";
+  const issueCount = exercise.debugFindings?.length ?? 0;
+
   return (
     <aside className="flex h-full flex-col gap-4 overflow-y-auto p-5">
       <div>
-        <span className="inline-block rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-sky-400">
-          {exercise.difficulty}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${
+              isDebug
+                ? "bg-rose-500/15 text-rose-400"
+                : "bg-sky-500/15 text-sky-400"
+            }`}
+          >
+            {isDebug ? "debug" : exercise.difficulty}
+          </span>
+          {isDebug && (
+            <span className="inline-block rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-500">
+              {exercise.difficulty}
+            </span>
+          )}
+        </div>
         <h2 className="mt-2 text-lg font-semibold text-slate-100">{exercise.title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">{exercise.description}</p>
+        {isDebug && issueCount > 0 && (
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-rose-300/80">
+            <Bug className="h-3.5 w-3.5 shrink-0" />
+            {issueCount} known issue{issueCount === 1 ? "" : "s"} in this manifest
+          </p>
+        )}
       </div>
 
       {exercise.learningObjectives.length > 0 && (
@@ -35,6 +63,7 @@ export function ExercisePanel({ exercise, showHints, onToggleHints }: ExercisePa
         </section>
       )}
 
+      {!isDebug && (
       <section>
         <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
           <BookOpen className="h-3.5 w-3.5" />
@@ -67,6 +96,7 @@ export function ExercisePanel({ exercise, showHints, onToggleHints }: ExercisePa
           ))}
         </ul>
       </section>
+      )}
 
       {exercise.hints.length > 0 && (
         <section>

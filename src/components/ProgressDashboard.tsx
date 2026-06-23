@@ -3,23 +3,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Flame, Target, TrendingUp } from "lucide-react";
 
-import { loadProgress } from "@/lib/storage/progress";
+import { loadProgress, DEFAULT_PROGRESS } from "@/lib/storage/progress";
 import type { UserProgress } from "@/lib/domain/types";
 
 export function ProgressDashboard() {
-  const [progress, setProgress] = useState<UserProgress | null>(null);
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
 
   useEffect(() => {
     setProgress(loadProgress());
   }, []);
-
-  if (!progress) {
-    return (
-      <div className="flex h-full min-h-0 items-center justify-center text-slate-500">
-        Loading…
-      </div>
-    );
-  }
 
   const recent = [...progress.attempts].reverse().slice(0, 10);
   const weakAreas = Object.entries(progress.weaknesses)
@@ -32,7 +24,7 @@ export function ProgressDashboard() {
       : 0;
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
+    <div className="mx-auto w-full max-w-3xl p-8">
       <h1 className="text-2xl font-bold text-slate-100">Your Progress</h1>
       <p className="mt-1 text-sm text-slate-500">Stored locally in your browser</p>
 

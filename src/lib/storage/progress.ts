@@ -2,18 +2,44 @@ import type { AttemptRecord, UserProgress } from "../domain/types";
 
 const STORAGE_KEY = "k8s-trainer-progress";
 
-const DEFAULT_PROGRESS: UserProgress = {
+export const DEFAULT_PROGRESS: UserProgress = {
   attempts: [],
   streak: { current: 0, longest: 0 },
   weaknesses: {},
 };
+
+function normalizeProgress(data: unknown): UserProgress {
+  if (!data || typeof data !== "object") return DEFAULT_PROGRESS;
+
+  const parsed = data as Partial<UserProgress>;
+  const streak =
+    parsed.streak && typeof parsed.streak === "object"
+      ? {
+          current: Number(parsed.streak.current ?? 0),
+          longest: Number(parsed.streak.longest ?? 0),
+          lastActivityDate:
+            typeof parsed.streak.lastActivityDate === "string"
+              ? parsed.streak.lastActivityDate
+              : undefined,
+        }
+      : DEFAULT_PROGRESS.streak;
+
+  return {
+    attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
+    streak,
+    weaknesses:
+      parsed.weaknesses && typeof parsed.weaknesses === "object"
+        ? parsed.weaknesses
+        : {},
+  };
+}
 
 export function loadProgress(): UserProgress {
   if (typeof window === "undefined") return DEFAULT_PROGRESS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PROGRESS;
-    return { ...DEFAULT_PROGRESS, ...JSON.parse(raw) } as UserProgress;
+    return normalizeProgress(JSON.parse(raw));
   } catch {
     return DEFAULT_PROGRESS;
   }
