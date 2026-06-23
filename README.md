@@ -1,6 +1,6 @@
 # k8s YAML Trainer (Web)
 
-Interactive web app for learning Kubernetes manifests — type YAML live with instant validation.
+Interactive Kubernetes YAML Trainer. Practice writing, reviewing, and debugging Kubernetes manifests through hands-on challenges, validation, and interview-style exercises.
 
 ## Stack
 
